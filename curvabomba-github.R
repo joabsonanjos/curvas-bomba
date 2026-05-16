@@ -1,16 +1,10 @@
+simular_bomba <- function(Q, H, N, Hg = 3) {
+
 library(ggplot2)
 library(ggpmisc)
 
 ###################
 # 1. AJUSTES INICIAIS E GRÁFICOS ----
-
-Q <- c(0, 5, 10, 15, 20, 25, 30, 35, 40, 45)
-H <- c(76.5, 75.6, 74.3, 73, 70.4, 66.9, 60.8, 53, 42.1, 30)
-N <- c(0, 22.2, 40.6, 55.1, 65.8, 72.6, 75.6, 74.8, 70.1, 61.5) # Corrigido para ponto (.)
-
-Hg <- 15
-
-rotacoes <- c(1.0, 0.9, 0.8, 0.7, 0.6)
 
 # Criando a tabela (Data Frame) corretamente com colunas nomeadas
 curva <- data.frame(Q = Q, H = H, N = N)
@@ -115,7 +109,6 @@ tabela_vazoes$L_afin <- (d * (tabela_vazoes$Q_ph)^2) + (e * tabela_vazoes$Q_ph) 
 
 
 # 7. EXPORTAÇÃO DOS RESULTADOS ----
-print("--- TABELA FINAL ENGENHARIA ---")
-print(tabela_vazoes)
 
-write.csv2(tabela_vazoes, "tabela_vazoes_homologas.csv", row.names = FALSE)
+return(tabela_vazoes)
+}
