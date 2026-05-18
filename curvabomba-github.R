@@ -39,6 +39,8 @@ analisar_bomba <- function(Q_novo, H_novo, N_novo, Hg_novo) {
   # 3. DETERMINAÇÃO DO PONTO DE PROJETO E SISTEMA (K) ----
   Qreq <- -e / (2 * d)
   H1 <- a * Qreq^2 + b * Qreq + c
+  N1 <- d * Qreq^2 + e * Qreq + f
+  
   K <- (H1 - Hg) / Qreq^2
   
   curva$Q <- as.numeric(as.character(curva$Q))
@@ -85,7 +87,8 @@ analisar_bomba <- function(Q_novo, H_novo, N_novo, Hg_novo) {
   for(i in 1:nrow(tabela_vazoes)) {
     rotacao_decimal <- tabela_vazoes$p[i]
     K_atual <- tabela_vazoes$K_rot[i]
-    nome_coluna <- sprintf("k_%.1f", ) # wait, string placeholder
+    
+    # Linha corrigida e única:
     nome_coluna <- sprintf("k_%.1f", rotacao_decimal)
     tabela_rendimento[[nome_coluna]] <- (curva$Q^2) * K_atual
   }
@@ -114,25 +117,4 @@ analisar_bomba <- function(Q_novo, H_novo, N_novo, Hg_novo) {
     geom_smooth(aes(y = N, color = "N 100%"), method = "lm", formula = y ~ poly(x, 2, raw = TRUE), se = FALSE, size = 1) +
     geom_smooth(aes(y = N_90pct, color = "N 90%"), method = "lm", formula = y ~ poly(x, 2, raw = TRUE), se = FALSE, size = 1) +
     geom_smooth(aes(y = N_80pct, color = "N 80%"), method = "lm", formula = y ~ poly(x, 2, raw = TRUE), se = FALSE, size = 1) +
-    geom_smooth(aes(y = N_70pct, color = "N 70%"), method = "lm", formula = y ~ poly(x, 2, raw = TRUE), se = FALSE, size = 1) +
-    scale_color_manual(values = c("N 100%"="red","N 90%"="darkred","N 80%"="yellow","N 70%"="orange")) +
-    labs(title = "Curvas de Rendimento por Patamar de Rotação", x = "Vazão Q (m³/h)", y = "Rendimento N (%)", color = "Patamares") +
-    theme_minimal()
-  
-  write.csv2(tabela_vazoes, "tabela_vazoes_homologas.csv", row.names = FALSE)
-  
-  # =====================================================================
-  # A CHAVE DO SEU PEDIDO: ENVELOPA TODOS OS OUTPUTS NUMA LISTA RETORNÁVEL
-  # =====================================================================
-  pacote_resultados <- list(
-    tabela_ensaio_expandida = curva,
-    tabela_pontos_operacao  = tabela_vazoes,
-    tabela_parabolas_k      = tabela_rendimento,
-    figura_ajuste_H         = curva_QH,
-    figura_ajuste_N         = curva_QN,
-    figura_combinada_final  = grafico_final,
-    figura_rendimento_pure  = curva_RR
-  )
-  
-  return(pacote_resultados)
-}
+    geom_smooth(aes(y = N_70pct, color = "N 70%"), method = "lm", formula = y ~ poly(x, 2, raw = TRUE), se = FALSE, size =
