@@ -1,9 +1,9 @@
-analisar_bomba <- function(Q_novo, H_novo, N_novo, Hg_novo) {
+analisar_bomba <- function(Q, H, N, Hg) {
   library(ggplot2)
   
   # 1. AJUSTES INICIAIS COM OS NOVOS VALORES ----
-  curva <- data.frame(Q = Q_novo, H = H_novo, N = N_novo)
-  Hg <- Hg_novo
+  curva <- data.frame(Q, H, N)
+  Hg <- 
   rotacoes <- c(1.0, 0.9, 0.8, 0.7)
   
   # 2. EXTRAÇÃO DE COEFICIENTES E MODELAGEM ----
