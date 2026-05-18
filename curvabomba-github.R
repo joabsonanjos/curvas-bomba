@@ -87,8 +87,6 @@ analisar_bomba <- function(Q_novo, H_novo, N_novo, Hg_novo) {
   for(i in 1:nrow(tabela_vazoes)) {
     rotacao_decimal <- tabela_vazoes$p[i]
     K_atual <- tabela_vazoes$K_rot[i]
-    
-    # Linha corrigida e única:
     nome_coluna <- sprintf("k_%.1f", rotacao_decimal)
     tabela_rendimento[[nome_coluna]] <- (curva$Q^2) * K_atual
   }
@@ -124,7 +122,7 @@ analisar_bomba <- function(Q_novo, H_novo, N_novo, Hg_novo) {
   
   write.csv2(tabela_vazoes, "tabela_vazoes_homologas.csv", row.names = FALSE)
   
-  # Montagem do pacote de retorno
+  # Retorno estruturado em lista
   pacote_resultados <- list(
     tabela_ensaio_expandida = curva,
     tabela_pontos_operacao  = tabela_vazoes,
