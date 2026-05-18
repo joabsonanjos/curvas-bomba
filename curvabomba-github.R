@@ -1,4 +1,3 @@
-
 library(ggplot2)
 
 #######################################################################
@@ -16,31 +15,6 @@ curva <- data.frame(Q = Q, H = H, N = N)
 print("--- CURVA DO ENSAIO ---")
 print(curva)
 
-#######################################################################
-# 1.1 GERAR OS GRÁFICOS
-#######################################################################
-
-# Alterado para %.4f em todos os coeficientes para exibir 4 casas decimais
-texto_H <- sprintf("Y = %.4fx² + %.4fx + %.4f\nR² = %.4f", a, b, c, r2_H)
-texto_N <- sprintf("Y = %.4fx² + %.4fx + %.4f\nR² = %.4f", d, e, f, r2_N)
-
-# Gráfico H vs Q
-curva_QH <- ggplot(curva, aes(x = Q, y = H)) +
-  geom_point(size = 2.5) +
-  geom_smooth(method = "lm", formula = y ~ poly(x, 2, raw = TRUE), color = "blue", se = FALSE) +
-  annotate("text", x = max(curva$Q) * 0.6, y = max(curva$H) * 0.9, label = texto_H, hjust = 0, size = 4) +
-  labs(title = "Ajuste Polinomial de Grau 2 (H vs Q)", x = "Q (m³/h)", y = "H (m)") +
-  theme_minimal()
-print(curva_QH)
-
-# Gráfico N vs Q
-curva_QN <- ggplot(curva, aes(x = Q, y = N)) +
-  geom_point(size = 2.5) +
-  geom_smooth(method = "lm", formula = y ~ poly(x, 2, raw = TRUE), color = "red", se = FALSE) +
-  annotate("text", x = max(curva$Q) * 0.1, y = max(curva$N) * 0.2, label = texto_N, hjust = 0, size = 4) +
-  labs(title = "Ajuste Polinomial de Grau 2 (N vs Q)", x = "Q (m³/h)", y = "N (%)") +
-  theme_minimal()
-print(curva_QN)
 
 #######################################################################
 # 2. EXTRAÇÃO DE COEFICIENTES E MODELAGEM ----
@@ -61,6 +35,32 @@ f <- coefs_N[1] # Intercepto
 e <- coefs_N[2] # Termo linear (X)
 d <- coefs_N[3] # Termo quadrático (X²)
 r2_N <- summary(modelo_N)$r.squared
+
+
+#######################################################################
+# 2.1 GERAR OS GRÁFICOS INDIVIDUAIS (Movido para após a modelagem) ----
+#######################################################################
+
+texto_H <- sprintf("Y = %.4fx² + %.4fx + %.4f\nR² = %.4f", a, b, c, r2_H)
+texto_N <- sprintf("Y = %.4fx² + %.4fx + %.4f\nR² = %.4f", d, e, f, r2_N)
+
+# Gráfico H vs Q
+curva_QH <- ggplot(curva, aes(x = Q, y = H)) +
+  geom_point(size = 2.5) +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2, raw = TRUE), color = "blue", se = FALSE) +
+  annotate("text", x = max(curva$Q) * 0.6, y = max(curva$H) * 0.9, label = texto_H, hjust = 0, size = 4) +
+  labs(title = "Ajuste Polinomial de Grau 2 (H vs Q)", x = "Q (m³/h)", y = "H (m)") +
+  theme_minimal()
+print(curva_QH)
+
+# Gráfico N vs Q
+curva_QN <- ggplot(curva, aes(x = Q, y = N)) +
+  geom_point(size = 2.5) +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2, raw = TRUE), color = "red", se = FALSE) +
+  annotate("text", x = max(curva$Q) * 0.1, y = max(curva$N) * 0.2, label = texto_N, hjust = 0, size = 4) +
+  labs(title = "Ajuste Polinomial de Grau 2 (N vs Q)", x = "Q (m³/h)", y = "N (%)") +
+  theme_minimal()
+print(curva_QN)
 
 
 #######################################################################
@@ -192,12 +192,11 @@ grafico_final <- ggplot(curva, aes(x = Q)) +
   geom_smooth(aes(y = N, color = "Rendimento (Ensaio)"), method = "lm", formula = y ~ poly(x, 2, raw = TRUE), se = FALSE, size = 1, linetype = "longdash") +
   geom_point(aes(y = N, color = "Rendimento (Ensaio)"), size = 2) + 
   
-  # D. Parábolas de Rendimento Constante (Tracejadas Curtas baseadas na tabela_div_K)
-  geom_line(data = tabela_div_K, aes(x = Q_ensaio, y = k_1.0, color = "K 100%"), linetype = "dashed", size = 0.8) +
-  geom_line(data = tabela_div_K, aes(x = Q_ensaio, y = k_0.9, color = "K 90%"), linetype = "dashed", size = 0.8) +
-  geom_line(data = tabela_div_K, aes(x = Q_ensaio, y = k_0.8, color = "K 80%"), linetype = "dashed", size = 0.8) +
-  geom_line(data = tabela_div_K, aes(x = Q_ensaio, y = k_0.7, color = "K 70%"), linetype = "dashed", size = 0.8) +
-  
+  # D. Parábolas de Rendimento Constante (Corrigido para puxar de tabela_rendimento)
+  geom_line(data = tabela_rendimento, aes(x = Q_ensaio, y = k_1.0, color = "K 100%"), linetype = "dashed", size = 0.8) +
+  geom_line(data = tabela_rendimento, aes(x = Q_ensaio, y = k_0.9, color = "K 90%"), linetype = "dashed", size = 0.8) +
+  geom_line(data = tabela_rendimento, aes(x = Q_ensaio, y = k_0.8, color = "K 80%"), linetype = "dashed", size = 0.8) +
+  geom_line(data = tabela_rendimento, aes(x = Q_ensaio, y = k_0.7, color = "K 70%"), linetype = "dashed", size = 0.8) +
   
   # E. Configuração dos Eixos (Esquerdo: Altura/Parábolas | Direito: Rendimento 1:1)
   scale_y_continuous(
@@ -212,13 +211,13 @@ grafico_final <- ggplot(curva, aes(x = Q)) +
     "H 80%"               = "green",
     "H 70%"               = "orange",
     "Sistema (HSIS)"      = "black",
-    "PF"   = "red",
+    "PF"                  = "red",
     "Rendimento (Ensaio)" = "darkred",
     # Cores das parábolas homólogas
-    "K 100%"      = "skyblue",
-    "K 90%"      = "plum",
-    "K 80%"      = "lightgreen",
-    "K 70%"      = "wheat"
+    "K 100%"              = "skyblue",
+    "K 90%"               = "plum",
+    "K 80%"              = "lightgreen",
+    "K 70%"              = "wheat"
   )) +
   
   labs(
@@ -231,9 +230,10 @@ grafico_final <- ggplot(curva, aes(x = Q)) +
 # Desenha o gráfico na aba Plots
 print(grafico_final)
 
-# =====================================================================
-# 8.1 GRÁFICO ISOLADO: FAMÍLIA DE CURVAS DE RENDIMENTO (N vs Q)
-# =====================================================================
+
+#######################################################################
+# 8.1 GRÁFICO ISOLADO: FAMÍLIA DE CURVAS DE RENDIMENTO (N vs Q) ----
+#######################################################################
 
 curva_RR <- ggplot(curva, aes(x = Q)) +
   
@@ -242,9 +242,6 @@ curva_RR <- ggplot(curva, aes(x = Q)) +
   geom_smooth(aes(y = N_90pct, color = "N 90%"), method = "lm", formula = y ~ poly(x, 2, raw = TRUE), se = FALSE, size = 1) +
   geom_smooth(aes(y = N_80pct, color = "N 80%"), method = "lm", formula = y ~ poly(x, 2, raw = TRUE), se = FALSE, size = 1) +
   geom_smooth(aes(y = N_70pct, color = "N 70%"), method = "lm", formula = y ~ poly(x, 2, raw = TRUE), se = FALSE, size = 1) +
-  
-  # Pontos originais do ensaio prático (opcional, apenas para o patamar de 100%)
-  
   
   # 2. Configuração manual das cores da legenda
   scale_color_manual(values = c(
@@ -263,7 +260,9 @@ curva_RR <- ggplot(curva, aes(x = Q)) +
   ) +
   theme_minimal()
 
-plot(curva_RR)
+# Corrigido de plot() para print() para renderização padrão do ggplot
+print(curva_RR)
+
 
 #######################################################################
 # 9. EXPORTAÇÃO DOS RESULTADOS ----
