@@ -14,8 +14,8 @@
 analisar_bomba <- function(Q, H, N, Hg) {
   library(ggplot2)
   
-  # 1. AJUSTES INICIAIS COM OS NOVOS VALORES ----
-  curva <- data.frame(Q, H, N)
+  # 1. AJUSTES INICIAIS COM OS VALORES DE ENTRADA ----
+  curva <- data.frame(Q = Q, H = H, N = N)
   rotacoes <- c(1.0, 0.9, 0.8, 0.7)
   
   # 2. EXTRAÇÃO DE COEFICIENTES E MODELAGEM ----
@@ -76,23 +76,23 @@ analisar_bomba <- function(Q, H, N, Hg) {
     ap <- tabela_completa$a_p[i]; bp <- tabela_completa$b_p[i]; cp <- tabela_completa$c_p[i]
     A <- ap - K; B <- bp; C <- cp - Hg
     delta <- (B^2) - (4 * A * C)
-    QPF  <- (-B - sqrt(delta)) / (2 * A)
-    QPH  <- QPF / tabela_completa$p[i]
-    return(c(QPF, QPH))
+    q_op  <- (-B - sqrt(delta)) / (2 * A)
+    q_ph  <- q_op / tabela_completa$p[i]
+    return(c(Q_op = q_op, Q_ph = q_ph))
   })
   
   resultados_finais <- do.call(rbind, calculo_bhaskara)
   tabela_completa <- cbind(tabela_completa, resultados_finais)
   
   # 5. MONTAGEM DA TABELA FINAL DE VAZÕES E PRESSÕES ----
-  colnames(tabela_completa) <- c("p", "a_p", "b_p", "c_p", "QPF", "QPH")
-  tabela_vazoes <- tabela_completa[, c("p", "QPF", "QPH")]
-  tabela_vazoes$HPF <- Hg + K * (tabela_vazoes$QPF)^2
-  tabela_vazoes$HPH <- tabela_vazoes$HPF / (tabela_vazoes$p)^2
+  colnames(tabela_completa) <- c("p", "a_p", "b_p", "c_p", "Q_op", "Q_ph")
+  tabela_vazoes <- tabela_completa[, c("p", "Q_op", "Q_ph")]
+  tabela_vazoes$H_op <- Hg + K * (tabela_vazoes$Q_op)^2
+  tabela_vazoes$H_ph <- tabela_vazoes$H_op / (tabela_vazoes$p)^2
   
   # 6. CÁLCULO DO RENDIMENTO E COEFICIENTE K DA ROTAÇÃO ----
-  tabela_vazoes$L_afin <- (d * (tabela_vazoes$QPH)^2) + (e * tabela_vazoes$QPH) + f
-  tabela_vazoes$K_rot <- tabela_vazoes$HPH / (tabela_vazoes$QPH)^2
+  tabela_vazoes$L_afin <- (d * (tabela_vazoes$Q_ph)^2) + (e * tabela_vazoes$Q_ph) + f
+  tabela_vazoes$K_rot <- tabela_vazoes$H_ph / (tabela_vazoes$Q_ph)^2
   
   # 7. CRIAÇÃO DA TABELA: PARÁBOLAS HOMÓLOGAS (Q² x K_rot) ----
   tabela_rendimento <- data.frame(Q_ensaio = curva$Q)
@@ -104,20 +104,21 @@ analisar_bomba <- function(Q, H, N, Hg) {
   }
   
   # 8. GRAFICADOR COMBINADO DEFINITIVO ----
+  # Corrigido: Agora puxa os dados de 'tabela_rendimento' para alinhar com a Seção 7
   grafico_final <- ggplot(curva, aes(x = Q)) +
     geom_smooth(aes(y = H, color = "H 100%"), method = "lm", formula = y ~ poly(x, 2, raw = TRUE), se = FALSE, size = 0.8) +
     geom_smooth(aes(y = H_90pct, color = "H 90%"), method = "lm", formula = y ~ poly(x, 2, raw = TRUE), se = FALSE, size = 0.8) +
     geom_smooth(aes(y = H_80pct, color = "H 80%"), method = "lm", formula = y ~ poly(x, 2, raw = TRUE), se = FALSE, size = 0.8) +
     geom_smooth(aes(y = H_70pct, color = "H 70%"), method = "lm", formula = y ~ poly(x, 2, raw = TRUE), se = FALSE, size = 0.8) +
     geom_smooth(aes(y = HSIS, color = "Sistema (HSIS)"), method = "lm", formula = y ~ poly(x, 2, raw = TRUE), se = FALSE, size = 1) +
-    geom_point(data = tabela_vazoes, aes(x = QPF, y = HPF, color = "PF"), size = 3) +
+    geom_point(data = tabela_vazoes, aes(x = Q_op, y = H_op, color = "PF"), size = 3) +
     geom_smooth(aes(y = N, color = "Rendimento (Ensaio)"), method = "lm", formula = y ~ poly(x, 2, raw = TRUE), se = FALSE, size = 1, linetype = "longdash") +
     geom_point(aes(y = N, color = "Rendimento (Ensaio)"), size = 2) + 
     geom_line(data = tabela_rendimento, aes(x = Q_ensaio, y = k_1.0, color = "K 100%"), linetype = "dashed", size = 0.8) +
     geom_line(data = tabela_rendimento, aes(x = Q_ensaio, y = k_0.9, color = "K 90%"), linetype = "dashed", size = 0.8) +
     geom_line(data = tabela_rendimento, aes(x = Q_ensaio, y = k_0.8, color = "K 80%"), linetype = "dashed", size = 0.8) +
     geom_line(data = tabela_rendimento, aes(x = Q_ensaio, y = k_0.7, color = "K 70%"), linetype = "dashed", size = 0.8) +
-    scale_y_continuous(name = "H (m)", sec.axis = sec_axis(~ . * 1, name = "N (%)")) +
+    scale_y_continuous(name = "Altura Manométrica / Parábolas Homólogas (m)", sec.axis = sec_axis(~ . * 1, name = "Rendimento (%)")) +
     scale_color_manual(values = c("H 100%"="blue","H 90%"="purple","H 80%"="green","H 70%"="orange","Sistema (HSIS)"="black","PF"="red","Rendimento (Ensaio)"="darkred","K 100%"="skyblue","K 90%"="plum","K 80%"="lightgreen","K 70%"="wheat")) +
     labs(title = "Curvas Características, Operação e Parábolas de Rendimento Constante", x = "Vazão Q (m³/h)", color = "Legenda") +
     theme_minimal()
@@ -134,7 +135,7 @@ analisar_bomba <- function(Q, H, N, Hg) {
   
   write.csv2(tabela_vazoes, "tabela_vazoes_homologas.csv", row.names = FALSE)
   
-  # Retorno estruturado em lista
+  # Estruturação da lista de retorno organizada
   pacote_resultados <- list(
     tabela_ensaio_expandida = curva,
     tabela_pontos_operacao  = tabela_vazoes,
