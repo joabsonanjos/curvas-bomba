@@ -1,9 +1,21 @@
+#' Analisar Curvas de Bomba Hidráulica e Sistema
+#'
+#' Realiza a modelagem polinomial de curvas características (H e N), determina
+#' o ponto de funcionamento (PF) via Bhaskara para múltiplos patamares de rotação
+#' e calcula as parábolas de rendimento constante (homólogas).
+#'
+#' @param Q Vetor numérico com as vazões do ensaio (m³/h).
+#' @param H Vetor numérico com as alturas manométricas (m).
+#' @param N Vetor numérico com os rendimentos do ensaio (%).
+#' @param Hg Altura geométrica do sistema (m).
+#'
+#' @return Uma lista (pacote) contendo 3 dataframes estruturados e 4 objetos de gráficos ggplot2.
+#' @export
 analisar_bomba <- function(Q, H, N, Hg) {
   library(ggplot2)
   
   # 1. AJUSTES INICIAIS COM OS NOVOS VALORES ----
   curva <- data.frame(Q, H, N)
-  Hg <- 
   rotacoes <- c(1.0, 0.9, 0.8, 0.7)
   
   # 2. EXTRAÇÃO DE COEFICIENTES E MODELAGEM ----
@@ -107,7 +119,7 @@ analisar_bomba <- function(Q, H, N, Hg) {
     geom_line(data = tabela_rendimento, aes(x = Q_ensaio, y = k_0.7, color = "K 70%"), linetype = "dashed", size = 0.8) +
     scale_y_continuous(name = "H (m)", sec.axis = sec_axis(~ . * 1, name = "N (%)")) +
     scale_color_manual(values = c("H 100%"="blue","H 90%"="purple","H 80%"="green","H 70%"="orange","Sistema (HSIS)"="black","PF"="red","Rendimento (Ensaio)"="darkred","K 100%"="skyblue","K 90%"="plum","K 80%"="lightgreen","K 70%"="wheat")) +
-    labs(title = "Curvas Características, Operação e Parábolas de Rendimento Constante", x = "Q (m³/h)", color = "Legenda") +
+    labs(title = "Curvas Características, Operação e Parábolas de Rendimento Constante", x = "Vazão Q (m³/h)", color = "Legenda") +
     theme_minimal()
   
   # 8.1 GRÁFICO ISOLADO RENDIMENTO ----
@@ -117,7 +129,7 @@ analisar_bomba <- function(Q, H, N, Hg) {
     geom_smooth(aes(y = N_80pct, color = "N 80%"), method = "lm", formula = y ~ poly(x, 2, raw = TRUE), se = FALSE, size = 1) +
     geom_smooth(aes(y = N_70pct, color = "N 70%"), method = "lm", formula = y ~ poly(x, 2, raw = TRUE), se = FALSE, size = 1) +
     scale_color_manual(values = c("N 100%"="red","N 90%"="darkred","N 80%"="yellow","N 70%"="orange")) +
-    labs(title = "Curvas de Rendimento por Patamar de Rotação", x = "Q (m³/h)", y = "N (%)", color = "Patamares") +
+    labs(title = "Curvas de Rendimento por Patamar de Rotação", x = "Vazão Q (m³/h)", y = "Rendimento N (%)", color = "Patamares") +
     theme_minimal()
   
   write.csv2(tabela_vazoes, "tabela_vazoes_homologas.csv", row.names = FALSE)
